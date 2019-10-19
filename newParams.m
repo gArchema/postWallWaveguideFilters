@@ -125,8 +125,8 @@ A = C\F;
         
         
 %incident field and seccondary field;
-ystart = min(cylCoord(:, 2))+3.5*dx;
-yfinal = max(cylCoord(:, 2))-3.5*dx;
+ystart = -4.7e-6;%min(cylCoord(:, 2))+3.5*dx;
+yfinal = 4.7e-6; %max(cylCoord(:, 2))-3.5*dx;
 rangey = abs(ystart)+abs(yfinal);
 rangex = rangey*2;
 xstart = min(cylCoord(:, 1))+4*dx;
