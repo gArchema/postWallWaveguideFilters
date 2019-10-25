@@ -74,7 +74,7 @@ for p = L*N+LL*NK+LH*NH+1:L*N+LL*NK+LH*NH+D
     cylCoord(p, :) = [xd*1e-3, yd*1e-3, r*1e-3];
 end;
 
-%find A matrix
+% %find A matrix
 C = zeros((L*N+D+LL*NK+LH*NH)*(2*M+1), (L*N+D+LL*NK+LH*NH)*(2*M+1));
 F = zeros((L*N+D+LL*NK+LH*NH)*(2*M+1), 1);
 T = zeros((L*N+D+LL*NK+LH*NH)*(2*M+1), 1);
@@ -125,13 +125,13 @@ A = C\F;
         
         
 %incident field and seccondary field;
-ystart = min(cylCoord(:, 2))+3.5*dx;
-yfinal = max(cylCoord(:, 2))-3.5*dx;
+ystart = min(cylCoord(:, 2))+1.5*dx;
+yfinal = max(cylCoord(:, 2))-1.5*dx;
 rangey = abs(ystart)+abs(yfinal);
 rangex = rangey*2;
 xstart = min(cylCoord(:, 1))+4*dx;
-x = linspace(xstart, xstart+rangex, 200);
-y = linspace(ystart, yfinal, 100);
+x = linspace(xstart, xstart+rangex, 600);
+y = linspace(ystart, yfinal, 300);
 E = zeros(size(y, 2), size(x, 2));
 Ei = zeros(size(y, 2), size(x, 2));
 Es = zeros(size(y, 2), size(x, 2));
@@ -163,9 +163,9 @@ for yp = 1:size(y, 2)/2
                 fes = angle2P([cylCoord(curCyl, 1), cylCoord(curCyl, 2)], [x(xp), y(yp)]);
                 eint = 0;
                 for m = -M:M
-                    binJn = F((curCyl-1)*(2*M+1)+m+M+1)*besselj(m, kE*des)+A((curCyl-1)*(2*M+1)+m+M+1)*besselh(m, 2, kE*des);
+                  %  binJn = F((curCyl-1)*(2*M+1)+m+M+1)*besselj(m, kE*des)+A((curCyl-1)*(2*M+1)+m+M+1)*besselh(m, 2, kE*des);
                     b = T((curCyl-1)*(2*M+1)+m+M+1, 1)*A((curCyl-1)*(2*M+1)+m+M+1, 1);
-                    eint = eint + b*besselj(m, cylCoord(p, 4)*des)*exp(1i*m*fes);
+                    eint = eint + b*besselj(m, cylCoord(curCyl, 4)*des)*exp(1i*m*fes);
                 end;
                 E(yp, xp) = eint;
                 E(size(y,2)-yp, xp) = eint;
