@@ -1,20 +1,24 @@
 %init
 format long;
 dielE = 1;
-dielDK =39;
+dielDK =100000;
 aP = 0.65e-3;
 dx = 1e-6;
 aD = 0.18*dx;
 dy = dx;
 fii = pi;
 M=3;
-LL=3;
+LL=1;
 NK = 5*2;
 LH = 1;
 NH = 10*2;
-cylCoord = ones(LL*NK+LH*NH+1, 5);
+aditation = 0;
+for ll = 1:LL
+    aditation = aditation+1+aditation;
+end;
+cylCoord = ones(LL*NK+LH*NH, 5);
 f = 10; %input('enter frequency: ');
-freq = physconst('LightSpeed')*0.44/dx;
+freq = physconst('LightSpeed')*0.33/dx;
 kE = 2*pi*freq*sqrt(dielE)/physconst('LightSpeed');
 kDK = 2*pi*freq*sqrt(dielDK)/physconst('LightSpeed');
 xs = 0; ystart = 0;
@@ -42,21 +46,24 @@ for lh = 1:LH
     end;
 end;
 
-cylCoord(LL*NK+LH*NH+1, :) = [cvxi, 0, aD, kDK, dielDK];
+% cylCoord(LL*NK+LH*NH+1, :) = [cvxi, aD, aD, kDK, dielDK];
+% cylCoord(LL*NK+LH*NH+2, :) = [cvxi, -aD, aD, kDK, dielDK];
+% cylCoord(LL*NK+LH*NH+3, :) = [cvxi-4*aD, 0, aD, kDK, dielDK];
 
 %plot(cylCoord(:, 1), cylCoord(:, 2), 'o');
 
-C = zeros((LL*NK+LH*NH+1)*(2*M+1), (LL*NK+LH*NH+1)*(2*M+1));
-F = zeros((LL*NK+LH*NH+1)*(2*M+1), 1);
-T = zeros((LL*NK+LH*NH+1)*(2*M+1), 1);
-for p=1:LL*NK+LH*NH+1
+
+C = zeros((LL*NK+LH*NH)*(2*M+1), (LL*NK+LH*NH)*(2*M+1));
+F = zeros((LL*NK+LH*NH)*(2*M+1), 1);
+T = zeros((LL*NK+LH*NH)*(2*M+1), 1);
+for p=1:LL*NK+LH*NH
     df = distance([xs,ystart], [cylCoord(p, 1), cylCoord(p,2)]);
     ff = angle2P([xs, ystart], [cylCoord(p, 1), cylCoord(p,2)]);
     for m = -M:M
         fc = (1i)^(m)*exp(-1i*m*fii)*exp(1i*kE*df*cos(ff-fii));
         F((p-1)*(2*M+1) + m+M+1, 1) = fc;
     end;
-    for q=1:LL*NK+LH*NH+1
+    for q=1:LL*NK+LH*NH
         dc = distance([cylCoord(p, 1), cylCoord(p, 2)], [cylCoord(q, 1), cylCoord(q, 2)]);
         fc = angle2P([cylCoord(p, 1), cylCoord(p, 2)], [cylCoord(q, 1), cylCoord(q, 2)]);
         for m = -M:M
@@ -78,7 +85,7 @@ for p=1:LL*NK+LH*NH+1
                          jd1 = subs(jt, rk, kE*cylCoord(p, 3));
                          jd2 = subs(jt, rk, cylCoord(p, 4)*cylCoord(p, 3));
                          c = -(cylCoord(p, 5)*kE*h1*jd2-dielE*cylCoord(p, 4)*hd1*j2)/(cylCoord(p, 5)*kE*j1*jd2-dielE*cylCoord(p, 4)*jd1*j2);
-                         t = dielE*cylCoord(p, 4)*(h1*jd1-hd1*j1)/(dielE*cylCoord(p, 4)*jd1*j2-cylCoord(p, 4)*kE*j1*jd2);
+                         t = dielE*cylCoord(p, 4)*(h1*jd1-hd1*j1)/(dielE*cylCoord(p, 4)*jd1*j2-cylCoord(p, 5)*kE*j1*jd2);
                      end;
                      T((p-1)*(2*M+1)+m+M+1, 1) = t;
                 else
@@ -101,8 +108,8 @@ yfinal = max(cylCoord(:, 2))+aD;
 rangey = abs(ystart)+abs(yfinal);
 rangex = rangey*2;
 xstart = min(cylCoord(:, 1))-2*aD;
-x = linspace(xstart, xstart+rangex, 200);
-y = linspace(ystart, yfinal, 100);
+x = linspace(xstart, xstart+rangex, 70);
+y = linspace(ystart, yfinal, 50);
 E = zeros(size(y, 2), size(x, 2));
 Ei = zeros(size(y, 2), size(x, 2));
 Es = zeros(size(y, 2), size(x, 2));
@@ -116,7 +123,7 @@ for yp = 1:size(y, 2)/2
             ei = exp(1i*kE*dei*cos(fei-fii));
             es = 0;
             eesc = 0;
-            for p=1:LL*NK+LH*NH+1
+            for p=1:LL*NK+LH*NH
                 des = distance([cylCoord(p, 1), cylCoord(p, 2)], [x(xp), y(yp)]);
                 fes = angle2P([cylCoord(p, 1), cylCoord(p, 2)], [x(xp), y(yp)]);
                 for m = -M:M
@@ -124,7 +131,7 @@ for yp = 1:size(y, 2)/2
                 end;
             end;
             E(yp, xp) = es+ei;
-            E(size(y,2)-yp, xp) = es+ei;
+            E(size(y,2)-yp+1, xp) = es+ei;
             Ei(yp, xp) = ei;
             Es(yp, xp) = es;
         else
@@ -136,7 +143,7 @@ for yp = 1:size(y, 2)/2
                 for m = -M:M
                     binJn = F((curCyl-1)*(2*M+1)+m+M+1)*besselj(m, kE*des)+A((curCyl-1)*(2*M+1)+m+M+1)*besselh(m, 2, kE*des);
                     b = T((curCyl-1)*(2*M+1)+m+M+1, 1)*A((curCyl-1)*(2*M+1)+m+M+1, 1);
-                    eint = eint + b*besselj(m, cylCoord(p, 4)*des)*exp(1i*m*fes);
+                    eint = eint + b*besselj(m, cylCoord(curCyl, 4)*des)*exp(1i*m*fes);
                 end;
                 E(yp, xp) = eint;
                 E(size(y,2)-yp, xp) = eint;
